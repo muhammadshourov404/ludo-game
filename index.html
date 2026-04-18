@@ -58,6 +58,18 @@
                 .catch(err => console.log("PWA Error:", err));
         }
     </script>
+        <script>
+        // অফলাইনে থাকলে নেটওয়ার্ক প্যানেল সরিয়ে দেওয়া
+        window.addEventListener('load', () => {
+            if (!navigator.onLine) {
+                document.getElementById('network-ui').style.display = 'none';
+                console.log("Offline mode: Multiplayer disabled.");
+            }
+        });
+        window.addEventListener('offline', () => document.getElementById('network-ui').style.display = 'none');
+        window.addEventListener('online', () => document.getElementById('network-ui').style.display = 'block');
+    </script>
+
     <script type="module" src="js/board.js"></script>
     <script type="module" src="js/game.js"></script>
 </body>
