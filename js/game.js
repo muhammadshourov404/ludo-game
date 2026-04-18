@@ -1,208 +1,253 @@
-import { sounds } from './sound.js';
-import { CardSystem } from './cards.js';
-import { LudoAI } from './ai.js';
-import { NetworkManager } from './network.js';
+// Core Game Logic
+export const PLAYER_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f'];
+export const PLAYER_NAMES = ['লাল', 'নীল', 'সবুজ', 'হলুদ'];
 
-class LudoGame {
-    constructor() {
-        this.diceValue = 6; this.currentPlayer = 'red'; this.isRolling = false; this.diceRolled = false;
-        
-        this.tokens = {
-            red: [{id: 0, state: 'base', position: -1, basePos: [2,2]}, {id: 1, state: 'base', position: -1, basePos: [2,3]}, {id: 2, state: 'base', position: -1, basePos: [3,2]}, {id: 3, state: 'base', position: -1, basePos: [3,3]}],
-            green: [{id: 0, state: 'base', position: -1, basePos: [2,11]}, {id: 1, state: 'base', position: -1, basePos: [2,12]}, {id: 2, state: 'base', position: -1, basePos: [3,11]}, {id: 3, state: 'base', position: -1, basePos: [3,12]}]
-        };
-
-        this.masterPath = [[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
-        this.homePaths = { red: [[7,1],[7,2],[7,3],[7,4],[7,5],[7,6]], green: [[1,7],[2,7],[3,7],[4,7],[5,7],[6,7]] };
-        this.safeZones = [[6,1],[2,6],[1,8],[6,12],[8,13],[12,8],[13,6],[8,2]];
-        this.pathOffsets = { red: 0, green: 13 };
-
-        this.diceFaces = {
-            1: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="50" cy="50" r="10" fill="black"/></svg>',
-            2: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="30" cy="30" r="10" fill="black"/><circle cx="70" cy="70" r="10" fill="black"/></svg>',
-            3: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="25" cy="25" r="10" fill="black"/><circle cx="50" cy="50" r="10" fill="black"/><circle cx="75" cy="75" r="10" fill="black"/></svg>',
-            4: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="30" cy="30" r="10" fill="black"/><circle cx="70" cy="30" r="10" fill="black"/><circle cx="30" cy="70" r="10" fill="black"/><circle cx="70" cy="70" r="10" fill="black"/></svg>',
-            5: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="25" cy="25" r="10" fill="black"/><circle cx="75" cy="25" r="10" fill="black"/><circle cx="50" cy="50" r="10" fill="black"/><circle cx="25" cy="75" r="10" fill="black"/><circle cx="75" cy="75" r="10" fill="black"/></svg>',
-            6: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="30" cy="20" r="10" fill="black"/><circle cx="30" cy="50" r="10" fill="black"/><circle cx="30" cy="80" r="10" fill="black"/><circle cx="70" cy="20" r="10" fill="black"/><circle cx="70" cy="50" r="10" fill="black"/><circle cx="70" cy="80" r="10" fill="black"/></svg>'
-        };
-
-        this.magicSystem = new CardSystem();
-        this.aiPlayer = new LudoAI(this, 'green');
-        this.network = new NetworkManager(this);
-        this.init();
+export class LudoGame {
+  constructor(options = {}) {
+    this.mode = options.mode || 'classic'; // classic, rush, magical
+    this.players = options.players || [
+      { type: 'human', color: 0 },
+      { type: 'ai', color: 1 },
+      { type: 'ai', color: 2 },
+      { type: 'ai', color: 3 }
+    ];
+    
+    this.currentPlayer = 0;
+    this.diceValue = null;
+    this.diceRolled = false;
+    this.canRollAgain = false; // for getting a 6
+    this.winner = null;
+    
+    // Board state: 0-51 main path, each player has home path (4 steps) and home base
+    // We'll represent pieces as an array for each player: positions.
+    // Position -1 = home base, 0-50 = main path, 51-55 = home run (relative to player)
+    this.pieces = [
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1],
+      [-1, -1, -1, -1]
+    ];
+    
+    // Safe spots (global index)
+    this.safeSpots = [0, 8, 13, 21, 26, 34, 39, 47];
+    
+    // Starting positions for each player (index on main path)
+    this.startPositions = [0, 13, 26, 39];
+    
+    // Home run start index (after completing full circle) relative to player
+    this.homeRunStart = 51;
+    
+    // Magic cards state
+    this.cards = {
+      deck: [],
+      current: null,
+      cooldown: 0
+    };
+    
+    // Game event listeners
+    this.listeners = [];
+  }
+  
+  addListener(fn) { this.listeners.push(fn); }
+  notifyListeners(event) { this.listeners.forEach(fn => fn(event)); }
+  
+  rollDice() {
+    if (this.diceRolled && !this.canRollAgain) return false;
+    if (this.winner !== null) return false;
+    
+    let value;
+    if (this.mode === 'rush') {
+      // Rush mode: biased to 4-6
+      value = Math.floor(Math.random() * 3) + 4; // 4,5,6
+    } else {
+      value = Math.floor(Math.random() * 6) + 1;
     }
-
-    init() {
-        this.diceContainer = document.getElementById('dice-container');
-        this.diceContainer.innerHTML = this.diceFaces[6];
-        document.getElementById('roll-btn').addEventListener('click', () => this.rollDice());
-        this.diceContainer.addEventListener('click', () => this.rollDice());
-        setTimeout(() => this.renderAllTokens(), 100);
-                setTimeout(() => {
-            this.renderAllTokens();
-            // ম্যাজিক ঘরগুলোতে ভিজ্যুয়াল গ্লো যুক্ত করা
-            this.magicSystem.magicPositions.forEach(pos => {
-                let [r, c] = this.masterPath[pos];
-                const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-                if (cell) {
-                    cell.style.boxShadow = "inset 0 0 15px var(--blue)";
-                    cell.style.border = "2px solid var(--blue)";
-                }
-            });
-        }, 100);
+    
+    this.diceValue = value;
+    this.diceRolled = true;
+    
+    // Check if player can move
+    const movablePieces = this.getMovablePieces(this.currentPlayer, value);
+    if (movablePieces.length === 0) {
+      // No moves possible, turn ends automatically
+      this.canRollAgain = false;
+      this.notifyListeners({ type: 'no-moves', player: this.currentPlayer });
+    } else {
+      if (value === 6) {
+        this.canRollAgain = true;
+        this.notifyListeners({ type: 'got-six', player: this.currentPlayer });
+      } else {
+        this.canRollAgain = false;
+      }
     }
-
-    updateActiveUI() {
-        document.getElementById('player-1-info').style.opacity = (this.currentPlayer === 'red') ? '1' : '0.5';
-        document.getElementById('player-2-info').style.opacity = (this.currentPlayer === 'green') ? '1' : '0.5';
+    
+    this.notifyListeners({ type: 'dice-rolled', value, player: this.currentPlayer });
+    
+    // Magic mode: draw card after every 3 rolls
+    if (this.mode === 'magical') {
+      this.cards.cooldown++;
+      if (this.cards.cooldown >= 3) {
+        this.drawMagicCard();
+        this.cards.cooldown = 0;
+      }
     }
-
-    rollDice() {
-        if (this.isRolling || this.diceRolled) return;
-        
-        // Network Check: Only allow roll if it's your turn in multiplayer
-        if (this.network.roomId && this.network.playerId !== this.currentPlayer) return;
-
-        this.isRolling = true; this.diceContainer.classList.add('rolling');
-        sounds.play('dice'); if(navigator.vibrate) navigator.vibrate(50);
-
-        setTimeout(() => {
-            this.diceValue = Math.floor(Math.random() * 6) + 1;
-            this.diceContainer.innerHTML = this.diceFaces[this.diceValue];
-            this.diceContainer.classList.remove('rolling');
-            this.diceRolled = true; this.isRolling = false;
-            if(this.network.roomId) this.network.sendUpdate();
-            this.checkAvailableMoves();
-        }, 400);
+    
+    return value;
+  }
+  
+  getMovablePieces(player, dice) {
+    const pieces = this.pieces[player];
+    const movable = [];
+    
+    for (let i = 0; i < pieces.length; i++) {
+      const pos = pieces[i];
+      // If piece is home (-1) and dice == 6, can move out
+      if (pos === -1 && dice === 6) {
+        movable.push(i);
+        continue;
+      }
+      // If piece is on board and not in home stretch completed
+      if (pos >= 0 && pos < 51) {
+        const newPos = this.calculateNewPosition(player, pos, dice);
+        if (newPos !== null) movable.push(i);
+      } else if (pos >= 51 && pos < 56) {
+        // Home run
+        const newHomePos = pos + dice;
+        if (newHomePos <= 55) movable.push(i);
+      }
     }
-
-    checkAvailableMoves() {
-        let canMove = false;
-        this.tokens[this.currentPlayer].forEach(t => {
-            if (t.state === 'base' && this.diceValue === 6) canMove = true;
-            if (t.state === 'active' && (t.position + this.diceValue <= 56)) canMove = true;
-        });
-
-        if (!canMove) {
-            setTimeout(() => this.switchTurn(), 800);
-        } else if (this.currentPlayer === 'green' && !this.network.roomId) {
-            setTimeout(() => {
-                const aiMove = this.aiPlayer.decideMove();
-                if(aiMove !== null) this.handleTokenClick('green', aiMove);
-            }, 800);
+    return movable;
+  }
+  
+  calculateNewPosition(player, currentPos, steps) {
+    // Convert global position to relative to player's start
+    const relativePos = (currentPos - this.startPositions[player] + 52) % 52;
+    const newRelative = relativePos + steps;
+    
+    if (newRelative > 50) {
+      // Entering home run
+      const homeStep = newRelative - 51;
+      if (homeStep < 4) {
+        return 51 + homeStep;
+      } else {
+        return null; // overshoot
+      }
+    } else {
+      // Still on main path
+      let newGlobal = (this.startPositions[player] + newRelative) % 52;
+      return newGlobal;
+    }
+  }
+  
+  movePiece(pieceIndex) {
+    if (!this.diceRolled) return false;
+    const player = this.currentPlayer;
+    const pieces = this.pieces[player];
+    const pos = pieces[pieceIndex];
+    const dice = this.diceValue;
+    
+    let newPos;
+    let captured = null;
+    
+    if (pos === -1) {
+      if (dice !== 6) return false;
+      newPos = this.startPositions[player];
+    } else if (pos >= 0 && pos < 51) {
+      newPos = this.calculateNewPosition(player, pos, dice);
+      if (newPos === null) return false;
+    } else if (pos >= 51) {
+      newPos = pos + dice;
+      if (newPos > 55) return false;
+    }
+    
+    // Check for capture (only on main path)
+    if (newPos < 51 && !this.safeSpots.includes(newPos)) {
+      for (let p = 0; p < 4; p++) {
+        if (p === player) continue;
+        const targetPieces = this.pieces[p];
+        for (let i = 0; i < targetPieces.length; i++) {
+          if (targetPieces[i] === newPos) {
+            captured = { player: p, piece: i };
+            targetPieces[i] = -1;
+            break;
+          }
         }
+      }
     }
-
-    handleTokenClick(color, id) {
-        if (color !== this.currentPlayer || !this.diceRolled) return;
-        if (this.network.roomId && this.network.playerId !== this.currentPlayer) return;
-
-        const token = this.tokens[color][id];
-        let bonusTurn = false;
-
-        if (token.state === 'base' && this.diceValue === 6) {
-            token.state = 'active'; token.position = 0; bonusTurn = true;
-        } else if (token.state === 'active' && token.position + this.diceValue <= 56) {
-            token.position += this.diceValue;
-            
-            const effect = this.magicSystem.getEffectAt(token.position);
-            if(effect) this.magicSystem.applyEffect(token, effect);
-
-            if (token.position <= 50) {
-                let targetIndex = (this.pathOffsets[color] + token.position) % 52;
-                let [r, c] = this.masterPath[targetIndex];
-                if(this.checkCapture(r, c, color)) bonusTurn = true;
-            }
-
-            if (token.position === 56) {
-                token.state = 'goal'; bonusTurn = true; sounds.play('home');
-                if(navigator.vibrate) navigator.vibrate([200,100,200]);
-                this.checkWin(color);
-            }
-            if(this.diceValue === 6) bonusTurn = true;
-        } else return;
-
-        sounds.play('move');
-        this.moveTokenDOM();
-        this.diceRolled = false;
-        if(!bonusTurn) this.switchTurn();
-        else if(this.network.roomId) this.network.sendUpdate();
+    
+    pieces[pieceIndex] = newPos;
+    this.diceRolled = false;
+    
+    // Check win condition
+    if (this.checkWin(player)) {
+      this.winner = player;
+      this.notifyListeners({ type: 'game-over', winner: player });
+    } else {
+      // Next turn logic
+      if (dice === 6 && this.mode !== 'rush') {
+        // Player gets another turn, keep currentPlayer
+        this.notifyListeners({ type: 'extra-turn', player });
+      } else {
+        this.nextPlayer();
+      }
     }
-
-    checkCapture(r, c, attackerColor, simulate = false) {
-        if(this.safeZones.some(z => z[0]===r && z[1]===c)) return false;
-        let capture = false;
-        for (const [col, arr] of Object.entries(this.tokens)) {
-            if (col !== attackerColor) {
-                arr.forEach(t => {
-                    if (t.state === 'active' && t.position <= 50) {
-                        let idx = (this.pathOffsets[col] + t.position) % 52;
-                        let [er, ec] = this.masterPath[idx];
-                        if (er === r && ec === c) {
-                            if(!simulate) {
-                                t.state = 'base'; t.position = -1; capture = true;
-                                sounds.play('capture'); if(navigator.vibrate) navigator.vibrate([100,50,100]);
-                            } else capture = true;
-                        }
-                    }
-                });
-            }
-        }
-        return capture;
-    }
-
-    checkWin(color) {
-        if(this.tokens[color].every(t => t.state === 'goal')) {
-            document.getElementById('win-modal').classList.remove('hidden');
-            document.getElementById('winner-text').innerText = `${color.toUpperCase()} WINS!`;
-        }
-    }
-
-    switchTurn() {
-        this.currentPlayer = (this.currentPlayer === 'red') ? 'green' : 'red';
-        this.diceRolled = false; this.updateActiveUI(); this.renderAllTokens();
-        if(this.network.roomId) this.network.sendUpdate();
-        
-        if (this.currentPlayer === 'green' && !this.network.roomId) {
-            setTimeout(() => this.rollDice(), 1000);
-        }
-    }
-
-    syncFromNetwork(data) {
-        this.currentPlayer = data.currentPlayer; this.diceValue = data.diceValue; this.tokens = data.tokens;
-        this.diceContainer.innerHTML = this.diceFaces[this.diceValue];
-        this.updateActiveUI(); this.renderAllTokens();
-    }
-
-    renderAllTokens() {
-        document.querySelectorAll('.token').forEach(el => el.remove());
-        for (const [color, arr] of Object.entries(this.tokens)) {
-            arr.forEach(t => {
-                let r, c;
-                if (t.state === 'base') [r, c] = t.basePos;
-                else if (t.state === 'active' || t.state === 'goal') {
-                    if (t.position <= 50) {
-                        let idx = (this.pathOffsets[color] + t.position) % 52;
-                        [r, c] = this.masterPath[idx];
-                    } else if(t.position > 50 && t.position <= 56) {
-                        [r, c] = this.homePaths[color][t.position - 51];
-                    }
-                }
-                if(r !== undefined && c !== undefined) {
-                    const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
-                    if (cell) {
-                        const el = document.createElement('div'); el.classList.add('token', `token-${color}`);
-                        if (color === this.currentPlayer && t.state !== 'goal') el.classList.add('token-active');
-                        if (t.state === 'goal') { el.style.transform = 'scale(0.6)'; el.style.opacity = '0.8'; }
-                        el.id = `token-${color}-${t.id}`;
-                        el.addEventListener('click', () => this.handleTokenClick(color, t.id));
-                        cell.appendChild(el);
-                    }
-                }
-            });
-        }
-    }
-    moveTokenDOM() { this.renderAllTokens(); if(navigator.vibrate) navigator.vibrate(20); }
+    
+    this.notifyListeners({ 
+      type: 'piece-moved', 
+      player, piece: pieceIndex, 
+      newPos, captured 
+    });
+    
+    return true;
+  }
+  
+  nextPlayer() {
+    this.currentPlayer = (this.currentPlayer + 1) % 4;
+    this.diceRolled = false;
+    this.canRollAgain = false;
+    this.notifyListeners({ type: 'turn-change', player: this.currentPlayer });
+  }
+  
+  checkWin(player) {
+    return this.pieces[player].every(p => p >= 55);
+  }
+  
+  drawMagicCard() {
+    const cards = [
+      { name: 'Extra Dice', effect: 'extra-dice', icon: '🎲' },
+      { name: 'Shield', effect: 'shield', icon: '🛡️' },
+      { name: 'Swap', effect: 'swap', icon: '🔄' },
+      { name: 'Double Move', effect: 'double', icon: '⚡' }
+    ];
+    const card = cards[Math.floor(Math.random() * cards.length)];
+    this.cards.current = card;
+    this.notifyListeners({ type: 'card-drawn', card });
+  }
+  
+  useMagicCard() {
+    if (!this.cards.current) return false;
+    // Implement effects later
+    this.cards.current = null;
+    this.notifyListeners({ type: 'card-used' });
+    return true;
+  }
+  
+  // For AI and network synchronization
+  getState() {
+    return {
+      pieces: JSON.parse(JSON.stringify(this.pieces)),
+      currentPlayer: this.currentPlayer,
+      diceValue: this.diceValue,
+      diceRolled: this.diceRolled,
+      winner: this.winner,
+      mode: this.mode,
+      cards: { ...this.cards }
+    };
+  }
+  
+  setState(state) {
+    Object.assign(this, state);
+    this.pieces = JSON.parse(JSON.stringify(state.pieces));
+    this.notifyListeners({ type: 'state-sync' });
+  }
 }
-
-document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { window.ludo = new LudoGame(); }, 200); });
