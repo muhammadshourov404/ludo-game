@@ -1,36 +1,30 @@
-// LUDO PRIME Service Worker — by Muhammad Shourov (V4MPIR3)
-const CACHE = 'ludo-prime-v1';
+// sw.js - Service Worker by V4MPIR3
+const CACHE_NAME = 'ludo-v1';
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
+    './',
+    './index.html',
+    './css/style.css',
+    './css/themes.css',
+    './css/animations.css',
+    './js/board.js',
+    './js/game.js',
+    './js/sound.js',
+    './js/cards.js',
+    './js/ai.js',
+    './js/network.js',
+    './manifest.json'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
+// ইন্সটল করার সময় ফাইলগুলো সেভ করা
+self.addEventListener('install', (e) => {
+    e.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(cache => cache.put(e.request, clone));
-        return res;
-      }).catch(() => caches.match('./index.html'));
-    })
-  );
+// অফলাইনে ফাইলগুলো সার্ভ করা
+self.addEventListener('fetch', (e) => {
+    e.respondWith(
+        caches.match(e.request).then((res) => res || fetch(e.request))
+    );
 });
