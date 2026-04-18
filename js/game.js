@@ -1,13 +1,62 @@
 // js/game.js
-// V4MPIR3 Ludo - Core Game Logic & Dice System
+// V4MPIR3 Ludo - Core Game Logic, Movement & Turn System
 
 class LudoGame {
     constructor() {
-        this.diceValue = 1;
-        this.currentPlayer = 'red'; // Turns: red, green, yellow, blue
+        this.diceValue = 0;
+        // The game starts with Red
+        this.currentPlayer = 'red'; 
         this.isRolling = false;
+        this.diceRolled = false; // To track if the player has rolled the dice in their turn
         
-        // Pure SVG Dice Faces (No external images required)
+        // Token State Management
+        this.tokens = {
+            red: [
+                { id: 0, state: 'base', position: -1, basePos: [2, 2] },
+                { id: 1, state: 'base', position: -1, basePos: [2, 3] },
+                { id: 2, state: 'base', position: -1, basePos: [3, 2] },
+                { id: 3, state: 'base', position: -1, basePos: [3, 3] }
+            ],
+            green: [
+                { id: 0, state: 'base', position: -1, basePos: [2, 11] },
+                { id: 1, state: 'base', position: -1, basePos: [2, 12] },
+                { id: 2, state: 'base', position: -1, basePos: [3, 11] },
+                { id: 3, state: 'base', position: -1, basePos: [3, 12] }
+            ],
+            yellow: [
+                { id: 0, state: 'base', position: -1, basePos: [11, 11] },
+                { id: 1, state: 'base', position: -1, basePos: [11, 12] },
+                { id: 2, state: 'base', position: -1, basePos: [12, 11] },
+                { id: 3, state: 'base', position: -1, basePos: [12, 12] }
+            ],
+            blue: [
+                { id: 0, state: 'base', position: -1, basePos: [11, 2] },
+                { id: 1, state: 'base', position: -1, basePos: [11, 3] },
+                { id: 2, state: 'base', position: -1, basePos: [12, 2] },
+                { id: 3, state: 'base', position: -1, basePos: [12, 3] }
+            ]
+        };
+
+        // Master Path Array (52 Steps covering the entire outer track)
+        this.masterPath = [
+            [6,1], [6,2], [6,3], [6,4], [6,5], // Red start
+            [5,6], [4,6], [3,6], [2,6], [1,6], [0,6], // Up to Green
+            [0,7], [0,8], 
+            [1,8], [2,8], [3,8], [4,8], [5,8], // Green start
+            [6,9], [6,10], [6,11], [6,12], [6,13], [6,14], // Right to Yellow
+            [7,14], [8,14],
+            [8,13], [8,12], [8,11], [8,10], [8,9], // Yellow start
+            [9,8], [10,8], [11,8], [12,8], [13,8], [14,8], // Down to Blue
+            [14,7], [14,6],
+            [13,6], [12,6], [11,6], [10,6], [9,6], // Blue start
+            [8,5], [8,4], [8,3], [8,2], [8,1], [8,0], // Left to Red
+            [7,0], [6,0]
+        ];
+
+        // Player Offsets (Where they enter the masterPath)
+        this.pathOffsets = { red: 0, green: 13, yellow: 26, blue: 39 };
+
+        // Pure SVG Dice Faces
         this.diceFaces = {
             1: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="50" cy="50" r="10" fill="black"/></svg>',
             2: '<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="white"/><circle cx="30" cy="30" r="10" fill="black"/><circle cx="70" cy="70" r="10" fill="black"/></svg>',
@@ -23,84 +72,142 @@ class LudoGame {
     init() {
         this.diceContainer = document.getElementById('dice-container');
         this.rollBtn = document.getElementById('roll-btn');
-        
-        // Initial Dice setup (Shows 6 by default)
-        this.diceContainer.innerHTML = this.diceFaces[6];
+        this.diceContainer.innerHTML = this.diceFaces[6]; // Default view
 
-        // Event Listeners for rolling
         this.rollBtn.addEventListener('click', () => this.rollDice());
         this.diceContainer.addEventListener('click', () => this.rollDice());
 
-        // Wait a few milliseconds to ensure board.js has rendered the DOM cells
-        setTimeout(() => this.placeInitialTokens(), 100);
+        setTimeout(() => this.renderAllTokens(), 100);
+        this.updateActiveUI();
+    }
+
+    updateActiveUI() {
+        // Highlight active player name
+        document.getElementById('player-1-info').style.opacity = (this.currentPlayer === 'red') ? '1' : '0.5';
+        document.getElementById('player-2-info').style.opacity = (this.currentPlayer === 'green') ? '1' : '0.5';
     }
 
     rollDice() {
-        if (this.isRolling) return;
+        if (this.isRolling || this.diceRolled) return; // Prevent multiple rolls
         this.isRolling = true;
-
-        // Trigger CSS Animation
         this.diceContainer.classList.add('rolling');
-        
-        // Haptic Feedback for mobile browsers (Vibration)
         if (navigator.vibrate) navigator.vibrate(50);
 
-        // Calculate result after animation ends
         setTimeout(() => {
-            // Generate Random Number between 1 and 6
             this.diceValue = Math.floor(Math.random() * 6) + 1;
-            
-            // Update SVG
             this.diceContainer.innerHTML = this.diceFaces[this.diceValue];
-            
-            // Remove animation class
             this.diceContainer.classList.remove('rolling');
             this.isRolling = false;
-            
-            console.log(`[Game Engine] Player: ${this.currentPlayer} rolled a ${this.diceValue}`);
-            
-            // Logic to move token will be called here next
-            
-        }, 400); // 400ms matches CSS animation duration
+            this.diceRolled = true;
+
+            console.log(`[Game] ${this.currentPlayer} rolled a ${this.diceValue}`);
+            this.checkAvailableMoves();
+
+        }, 400);
     }
 
-    placeInitialTokens() {
-        // Safe Home Coordinates [row, col] for all 16 tokens
-        const homes = {
-            red: [[2, 2], [2, 3], [3, 2], [3, 3]],
-            green: [[2, 11], [2, 12], [3, 11], [3, 12]],
-            blue: [[11, 2], [11, 3], [12, 2], [12, 3]],
-            yellow: [[11, 11], [11, 12], [12, 11], [12, 12]]
-        };
+    checkAvailableMoves() {
+        let canMove = false;
+        const currentTokens = this.tokens[this.currentPlayer];
 
-        for (const [color, positions] of Object.entries(homes)) {
-            positions.forEach((pos, index) => {
-                this.createToken(color, index, pos[0], pos[1]);
+        currentTokens.forEach(token => {
+            if (token.state === 'base' && this.diceValue === 6) canMove = true;
+            if (token.state === 'active') canMove = true;
+        });
+
+        if (!canMove) {
+            console.log(`[Game] No valid moves for ${this.currentPlayer}. Turn passes.`);
+            setTimeout(() => this.switchTurn(), 1000); // Wait 1 sec then switch
+        } else {
+            console.log(`[Game] Waiting for ${this.currentPlayer} to select a token.`);
+        }
+    }
+
+    handleTokenClick(color, id) {
+        if (color !== this.currentPlayer || !this.diceRolled) return;
+
+        const token = this.tokens[color][id];
+
+        // Rule 1: Get out of base with a 6
+        if (token.state === 'base' && this.diceValue === 6) {
+            token.state = 'active';
+            token.position = 0; // Relative starting position (0 means their specific start square)
+            this.moveTokenDOM(color, id);
+            this.diceRolled = false; // Gets another turn after rolling 6
+            console.log(`[Game] ${color} token ${id} is out of base!`);
+            return;
+        }
+
+        // Rule 2: Move token forward
+        if (token.state === 'active') {
+            token.position += this.diceValue;
+            this.moveTokenDOM(color, id);
+            
+            // Turn Logic (If not 6, switch turn)
+            if (this.diceValue !== 6) {
+                this.diceRolled = false;
+                this.switchTurn();
+            } else {
+                this.diceRolled = false; // Keep turn
+            }
+        }
+    }
+
+    switchTurn() {
+        // Simple 2-player switch for now (Red <-> Green). Will expand to 4 later.
+        this.currentPlayer = (this.currentPlayer === 'red') ? 'green' : 'red';
+        this.diceRolled = false;
+        this.diceValue = 0;
+        this.updateActiveUI();
+        
+        // Remove active pulse from all tokens, add to new current player
+        document.querySelectorAll('.token').forEach(t => t.classList.remove('token-active'));
+        document.querySelectorAll(`.token-${this.currentPlayer}`).forEach(t => t.classList.add('token-active'));
+        
+        console.log(`[Game] Turn switched to ${this.currentPlayer}`);
+    }
+
+    renderAllTokens() {
+        // Clear board of existing tokens before redrawing
+        document.querySelectorAll('.token').forEach(el => el.remove());
+
+        for (const [color, tokensArray] of Object.entries(this.tokens)) {
+            tokensArray.forEach(tokenData => {
+                let r, c;
+
+                if (tokenData.state === 'base') {
+                    [r, c] = tokenData.basePos;
+                } else if (tokenData.state === 'active') {
+                    // Calculate absolute position on master path
+                    let masterIndex = (this.pathOffsets[color] + tokenData.position) % 52;
+                    [r, c] = this.masterPath[masterIndex];
+                }
+
+                const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                if (cell) {
+                    const tokenEl = document.createElement('div');
+                    tokenEl.classList.add('token', `token-${color}`);
+                    if (color === this.currentPlayer) tokenEl.classList.add('token-active');
+                    tokenEl.id = `token-${color}-${tokenData.id}`;
+                    
+                    // Add Click Listener directly to the DOM element
+                    tokenEl.addEventListener('click', () => this.handleTokenClick(color, tokenData.id));
+                    
+                    cell.appendChild(tokenEl);
+                }
             });
         }
-        console.log("[Game Engine] All 16 Tokens Placed in Bases successfully.");
     }
 
-    createToken(color, id, row, col) {
-        const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-        if (cell) {
-            const token = document.createElement('div');
-            token.classList.add('token', `token-${color}`);
-            token.id = `token-${color}-${id}`;
-            
-            // Adding pulse animation only to the current player's token (visual indicator)
-            if (color === this.currentPlayer) {
-                token.classList.add('token-active');
-            }
-            
-            cell.appendChild(token);
-        }
+    moveTokenDOM(color, id) {
+        // To keep it perfectly synchronized without bugs, we re-render the board positions
+        this.renderAllTokens();
+        if (navigator.vibrate) navigator.vibrate(20); // Small haptic bump when moved
     }
 }
 
-// Start Game Engine automatically when files load
+// Start Game Engine
 document.addEventListener('DOMContentLoaded', () => {
-    // Only initialize if board exists
     if(document.getElementById('ludo-board')) {
         window.ludo = new LudoGame();
     }
