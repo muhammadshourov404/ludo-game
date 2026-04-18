@@ -1,1 +1,81 @@
+/* Default / Classic Theme */
+:root {
+  --bg-primary: #f5f0e6;
+  --bg-secondary: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --accent: #e67e22;
+  --border-light: #dcdde1;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  --player-red: #e74c3c;
+  --player-blue: #3498db;
+  --player-green: #2ecc71;
+  --player-yellow: #f1c40f;
+  
+  --board-bg: #fdfaf6;
+  --path-color: #ecf0f1;
+  --safe-spot: #bdc3c7;
+}
 
+body.theme-classic {
+  /* defaults already set */
+}
+
+/* Dark Theme */
+body.theme-dark {
+  --bg-primary: #1e1e2f;
+  --bg-secondary: #2c2c3e;
+  --text-primary: #ecf0f1;
+  --text-secondary: #bdc3c7;
+  --accent: #9b59b6;
+  --border-light: #34495e;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  
+  --board-bg: #2c3e50;
+  --path-color: #34495e;
+  --safe-spot: #7f8c8d;
+}
+
+/* Neon Theme */
+body.theme-neon {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #111133;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0c0;
+  --accent: #00ffff;
+  --border-light: #333366;
+  --shadow: 0 0 15px #00ffff88;
+  
+  --player-red: #ff5555;
+  --player-blue: #5555ff;
+  --player-green: #55ff55;
+  --player-yellow: #ffff55;
+  
+  --board-bg: #0d0d2b;
+  --path-color: #1a1a3a;
+  --safe-spot: #2a2a5a;
+}
+
+/* Apply variables to body */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Buttons themes */
+.btn.primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  box-shadow: var(--shadow);
+}
+
+.btn.secondary {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+/* Additional theme-specific styles can be added */
