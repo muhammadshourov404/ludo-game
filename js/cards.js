@@ -1,19 +1,19 @@
-export const MagicEffects = { TRAP: 'trap', SPEED: 'speed', TELEPORT: 'teleport' };
-export class CardSystem {
-    constructor() { this.magicPositions = [10, 22, 35, 48]; }
-    getEffectAt(position) {
-        if (this.magicPositions.includes(position)) {
-            const effects = Object.values(MagicEffects);
-            return effects[Math.floor(Math.random() * effects.length)];
-        }
-        return null;
-    }
-    applyEffect(token, effect) {
-        switch(effect) {
-            case MagicEffects.TRAP: token.position = Math.max(0, token.position - 3); break;
-            case MagicEffects.SPEED: token.position = Math.min(50, token.position + 2); break;
-            case MagicEffects.TELEPORT: token.position = (token.position + 15) % 52; break;
-        }
-        return effect;
-    }
-}
+export const cardEffects = {
+  'extra-dice': (game, player) => {
+    // Allow another dice roll immediately
+    game.canRollAgain = true;
+    game.notifyListeners({ type: 'card-effect', effect: 'extra-dice' });
+  },
+  'shield': (game, player) => {
+    // Protect a piece from capture for one turn (implementation in capture logic)
+    game.shieldActive = { player, turns: 1 };
+  },
+  'swap': (game, player) => {
+    // Swap a piece with opponent
+    // Implement UI selection
+  },
+  'double': (game, player) => {
+    // Double dice value for one move
+    game.diceValue *= 2;
+  }
+};
