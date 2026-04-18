@@ -1,76 +1,189 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Ludo | By V4MPIR3</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/animations.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>✨ Ludo Royale ✨ | V4MPIR3</title>
+  
+  <!-- PWA Meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1e1e2f">
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Our Styles -->
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="game-container">
-        <div id="network-ui" class="network-panel">
-            <div class="network-buttons">
-                <button id="host-btn" class="premium-btn network-btn">Host Online Game</button>
-                <div class="join-section">
-                    <input type="text" id="room-input" placeholder="Enter Room Code" maxlength="6">
-                    <button id="join-btn" class="premium-btn network-btn">Join</button>
-                </div>
-            </div>
-            <p id="room-display" class="room-info"></p>
+  <div id="app">
+    <!-- Splash / Main Menu -->
+    <div id="menu-screen" class="screen active">
+      <div class="menu-container">
+        <h1 class="game-title">🎲 LUDO ROYALE 👑</h1>
+        <div class="menu-buttons">
+          <button class="btn primary" data-action="play-offline"><i class="fas fa-robot"></i> বটের সাথে খেলুন</button>
+          <button class="btn primary" data-action="play-local"><i class="fas fa-wifi"></i> লোকাল WiFi (LAN)</button>
+          <button class="btn primary" data-action="play-online"><i class="fas fa-globe"></i> অনলাইন ম্যাচ</button>
+          <button class="btn secondary" data-action="show-settings"><i class="fas fa-cog"></i> সেটিংস</button>
+          <button class="btn secondary" data-action="show-rules"><i class="fas fa-book"></i> নিয়মাবলী</button>
         </div>
-
-        <header class="game-header">
-            <div class="player-info" id="player-1-info">P1 (Red)</div>
-            <div class="mode-indicator" id="current-mode">Classic Ludo</div>
-            <div class="player-info" id="player-2-info">AI / P2 (Green)</div>
-        </header>
-
-        <main class="board-wrapper">
-            <div id="ludo-board"></div>
-        </main>
-
-        <div class="controls-section">
-            <div id="dice-container" class="dice"></div>
-            <button id="roll-btn" class="premium-btn">Roll Dice</button>
+        <div class="footer-credit">
+          <span>Developer: Muhammad Shourov (V4MPIR3)</span>
         </div>
-
-        <footer class="game-footer">
-            <p>&copy; 2026 Muhammad Shourov (V4MPIR3). All Rights Reserved.</p>
-            <a href="https://github.com/muhammadshourov404/ludo-game" target="_blank" class="github-link">GitHub Repo</a>
-        </footer>
-
-        <div id="win-modal" class="modal hidden">
-            <div class="modal-content">
-                <h2 id="winner-text">Congratulations!</h2>
-                <p>You played like a pro!</p>
-                <button onclick="location.reload()" class="premium-btn">Play Again</button>
-            </div>
-        </div>
+      </div>
     </div>
+    
+    <!-- Game Setup Screen (mode selection) -->
+    <div id="setup-screen" class="screen">
+      <div class="setup-container">
+        <h2><span id="mode-title">অফলাইন মোড</span></h2>
+        <div class="player-selection">
+          <div class="player-setup" data-player="0">
+            <i class="fas fa-user-circle" style="color: #e74c3c;"></i>
+            <span>লাল</span>
+            <select class="player-type">
+              <option value="human">মানুষ</option>
+              <option value="ai">বট (AI)</option>
+            </select>
+          </div>
+          <div class="player-setup" data-player="1">
+            <i class="fas fa-user-circle" style="color: #3498db;"></i>
+            <span>নীল</span>
+            <select class="player-type">
+              <option value="human">মানুষ</option>
+              <option value="ai">বট (AI)</option>
+            </select>
+          </div>
+          <div class="player-setup" data-player="2">
+            <i class="fas fa-user-circle" style="color: #2ecc71;"></i>
+            <span>সবুজ</span>
+            <select class="player-type">
+              <option value="human">মানুষ</option>
+              <option value="ai">বট (AI)</option>
+            </select>
+          </div>
+          <div class="player-setup" data-player="3">
+            <i class="fas fa-user-circle" style="color: #f1c40f;"></i>
+            <span>হলুদ</span>
+            <select class="player-type">
+              <option value="human">মানুষ</option>
+              <option value="ai">বট (AI)</option>
+            </select>
+          </div>
+        </div>
+        <div class="mode-options">
+          <label><input type="radio" name="game-mode" value="classic" checked> ক্লাসিক</label>
+          <label><input type="radio" name="game-mode" value="rush"> রাশ ⚡</label>
+          <label><input type="radio" name="game-mode" value="magical"> ম্যাজিক্যাল 🔮</label>
+        </div>
+        <div class="room-options" id="online-room-options" style="display: none;">
+          <input type="text" id="room-id-input" placeholder="রুম আইডি (খালি রাখলে নতুন)">
+          <button class="btn small" id="create-join-room">খেলা শুরু</button>
+        </div>
+        <div class="action-buttons">
+          <button class="btn primary" id="start-game-btn"><i class="fas fa-play"></i> শুরু</button>
+          <button class="btn secondary" id="back-to-menu-btn"><i class="fas fa-arrow-left"></i> ফিরুন</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-header">
+        <div class="game-info">
+          <span id="current-player-indicator">বর্তমান: লাল</span>
+          <span id="dice-value">🎲 ?</span>
+        </div>
+        <button id="menu-toggle-btn" class="icon-btn"><i class="fas fa-bars"></i></button>
+      </div>
+      
+      <div class="board-wrapper">
+        <canvas id="board-canvas" width="600" height="600"></canvas>
+        <div class="dice-container" id="dice-container">
+          <div id="dice-visual" class="dice">⚀</div>
+        </div>
+      </div>
+      
+      <div class="game-controls">
+        <button id="roll-dice-btn" class="btn primary"><i class="fas fa-dice"></i> ডাইস চালান</button>
+        <div id="move-options" class="move-options"></div>
+        <button id="end-turn-btn" class="btn secondary" style="display: none;">টার্ন শেষ</button>
+      </div>
+      
+      <!-- Magic Card Slot (for magical mode) -->
+      <div id="magic-card-slot" style="display: none;">
+        <div class="card-deck">
+          <span>🔮 ম্যাজিক কার্ড</span>
+          <div id="current-card" class="card">?</div>
+          <button id="use-card-btn" class="btn small" disabled>ব্যবহার করুন</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Screen -->
+    <div id="settings-screen" class="screen">
+      <div class="settings-container">
+        <h2>⚙️ সেটিংস</h2>
+        <div class="setting-item">
+          <label>থিম:</label>
+          <select id="theme-select">
+            <option value="classic">ক্লাসিক</option>
+            <option value="dark">ডার্ক</option>
+            <option value="neon">নিওন</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label>সাউন্ড:</label>
+          <input type="checkbox" id="sound-toggle" checked>
+        </div>
+        <div class="setting-item">
+          <label>AI কঠিনতা:</label>
+          <select id="ai-difficulty">
+            <option value="easy">সহজ</option>
+            <option value="hard">কঠিন</option>
+          </select>
+        </div>
+        <button class="btn secondary" id="close-settings">বন্ধ করুন</button>
+      </div>
+    </div>
+    
+    <!-- Rules Screen -->
+    <div id="rules-screen" class="screen">
+      <div class="rules-container">
+        <h2>📜 লুডো নিয়মাবলী</h2>
+        <div class="rules-content">
+          <p>• প্রতিটি খেলোয়াড়ের ৪টি গুটি থাকে।</p>
+          <p>• ৬ উঠলে গুটি খোলা যায় বা বাড়তি চাল পাওয়া যায়।</p>
+          <p>• নিরাপদ ঘর (স্টার) ছাড়া অন্য গুটি কাটা যায়।</p>
+          <p>• যে সবার আগে ৪টি গুটি হোমে পৌঁছায় সে জয়ী।</p>
+          <h3>⚡ রাশ মোড:</h3>
+          <p>• ডাইস সবসময় ৪-৬ দিতে পারে। দ্রুত গতি।</p>
+          <h3>🔮 ম্যাজিক্যাল মোড:</h3>
+          <p>• প্রতি ৩ টার্নে একটি কার্ড পাওয়া যায় (পাওয়ার-আপ)।</p>
+        </div>
+        <button class="btn secondary" id="close-rules">বুঝেছি</button>
+      </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+  </div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-                .then(() => console.log("Ludo PWA Registered!"))
-                .catch(err => console.log("PWA Error:", err));
-        }
-    </script>
-        <script>
-        // অফলাইনে থাকলে নেটওয়ার্ক প্যানেল সরিয়ে দেওয়া
-        window.addEventListener('load', () => {
-            if (!navigator.onLine) {
-                document.getElementById('network-ui').style.display = 'none';
-                console.log("Offline mode: Multiplayer disabled.");
-            }
-        });
-        window.addEventListener('offline', () => document.getElementById('network-ui').style.display = 'none');
-        window.addEventListener('online', () => document.getElementById('network-ui').style.display = 'block');
-    </script>
-
-    <script type="module" src="js/board.js"></script>
-    <script type="module" src="js/game.js"></script>
+  <!-- Firebase SDK (শুধু অনলাইন মোডের জন্য) -->
+  <script type="module">
+    // আমরা ডায়নামিকভাবে Firebase ইম্পোর্ট করব যখন প্রয়োজন, যাতে অফলাইনে সমস্যা না হয়।
+    // কনফিগ js/firebase-config.js এ আছে।
+  </script>
+  
+  <!-- Our Scripts -->
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
