@@ -1,81 +1,95 @@
-/* Default / Classic Theme */
-:root {
-  --bg-primary: #f5f0e6;
-  --bg-secondary: #ffffff;
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --accent: #e67e22;
-  --border-light: #dcdde1;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  
-  --player-red: #e74c3c;
-  --player-blue: #3498db;
-  --player-green: #2ecc71;
-  --player-yellow: #f1c40f;
-  
-  --board-bg: #fdfaf6;
-  --path-color: #ecf0f1;
-  --safe-spot: #bdc3c7;
-}
+/* =============================================
+   LUDO NEXUS — Themes
+   ============================================= */
 
-body.theme-classic {
-  /* defaults already set */
-}
-
-/* Dark Theme */
+/* DARK (Default) */
 body.theme-dark {
-  --bg-primary: #1e1e2f;
-  --bg-secondary: #2c2c3e;
-  --text-primary: #ecf0f1;
-  --text-secondary: #bdc3c7;
-  --accent: #9b59b6;
-  --border-light: #34495e;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  
-  --board-bg: #2c3e50;
-  --path-color: #34495e;
-  --safe-spot: #7f8c8d;
+  --bg-primary:   #0d0a1a;
+  --bg-secondary: #1a1230;
+  --bg-card:      #1e1535;
+  --border:       rgba(255,255,255,0.08);
+  --accent:       #c8a84b;
+  --accent-glow:  #f0c94488;
+  --text-primary: #f0eaff;
+  --text-muted:   #8a7aaa;
 }
 
-/* Neon Theme */
+/* NEON */
 body.theme-neon {
-  --bg-primary: #0a0a1a;
-  --bg-secondary: #111133;
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0c0;
-  --accent: #00ffff;
-  --border-light: #333366;
-  --shadow: 0 0 15px #00ffff88;
-  
-  --player-red: #ff5555;
-  --player-blue: #5555ff;
-  --player-green: #55ff55;
-  --player-yellow: #ffff55;
-  
-  --board-bg: #0d0d2b;
-  --path-color: #1a1a3a;
-  --safe-spot: #2a2a5a;
+  --bg-primary:   #040a12;
+  --bg-secondary: #081520;
+  --bg-card:      #0a1a2a;
+  --border:       rgba(0,255,200,0.12);
+  --accent:       #00ffc8;
+  --accent-glow:  #00ffc866;
+  --text-primary: #dfffff;
+  --text-muted:   #4a8a88;
 }
-
-/* Apply variables to body */
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  transition: background-color 0.3s, color 0.3s;
+body.theme-neon .title-ludo { color: #00ffc8; text-shadow: 0 0 20px #00ffc8aa, 0 0 40px #00ffc855; }
+body.theme-neon .menu-btn.primary { border-color: rgba(0,255,200,0.6); background: linear-gradient(135deg, rgba(0,255,200,0.12),rgba(0,255,200,0.03)); }
+body.theme-neon .start-game-btn { border-color: rgba(0,255,200,0.6); background: linear-gradient(135deg, rgba(0,255,200,0.15),rgba(0,255,200,0.04)); color: #00ffc8; }
+body.theme-neon .menu-bg-grid {
+  background-image: linear-gradient(rgba(0,255,200,0.025) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,255,200,0.025) 1px, transparent 1px);
 }
+body.theme-neon .orb-red    { background: #00ffc8; }
+body.theme-neon .orb-blue   { background: #0080ff; }
+body.theme-neon .orb-green  { background: #00ff80; }
+body.theme-neon .orb-yellow { background: #ff00a0; }
 
-/* Buttons themes */
-.btn.primary {
-  background: var(--accent);
-  color: white;
-  border: none;
-  box-shadow: var(--shadow);
+/* ROYAL */
+body.theme-royal {
+  --bg-primary:   #0a0514;
+  --bg-secondary: #160828;
+  --bg-card:      #1c0c30;
+  --border:       rgba(180,100,255,0.14);
+  --accent:       #bf7fff;
+  --accent-glow:  #bf7fff88;
+  --text-primary: #f5eeff;
+  --text-muted:   #9070c0;
 }
+body.theme-royal .title-ludo { color: #bf7fff; text-shadow: 0 0 20px #bf7fff99, 0 0 40px #bf7fff44; }
+body.theme-royal .menu-btn.primary { border-color: rgba(180,100,255,0.6); background: linear-gradient(135deg, rgba(180,100,255,0.15),rgba(180,100,255,0.04)); }
+body.theme-royal .start-game-btn { border-color: rgba(180,100,255,0.6); color: #bf7fff; }
+body.theme-royal .orb-red    { background: #bf7fff; }
+body.theme-royal .orb-blue   { background: #7040ff; }
+body.theme-royal .orb-green  { background: #ff40bf; }
+body.theme-royal .orb-yellow { background: #40a0ff; }
 
-.btn.secondary {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-light);
+/* NATURE */
+body.theme-nature {
+  --bg-primary:   #071510;
+  --bg-secondary: #0e2018;
+  --bg-card:      #122518;
+  --border:       rgba(80,200,100,0.12);
+  --accent:       #60d880;
+  --accent-glow:  #60d88088;
+  --text-primary: #e8ffe8;
+  --text-muted:   #4a8a60;
 }
+body.theme-nature .title-ludo { color: #60d880; text-shadow: 0 0 20px #60d88099, 0 0 40px #60d88044; }
+body.theme-nature .menu-btn.primary { border-color: rgba(80,200,100,0.6); background: linear-gradient(135deg, rgba(80,200,100,0.12),rgba(80,200,100,0.03)); }
+body.theme-nature .start-game-btn { border-color: rgba(80,200,100,0.6); color: #60d880; }
+body.theme-nature .orb-red    { background: #80d840; }
+body.theme-nature .orb-blue   { background: #40a060; }
+body.theme-nature .orb-green  { background: #60d880; }
+body.theme-nature .orb-yellow { background: #a0d840; }
 
-/* Additional theme-specific styles can be added */
+/* FIRE */
+body.theme-fire {
+  --bg-primary:   #150500;
+  --bg-secondary: #250a00;
+  --bg-card:      #2a0e00;
+  --border:       rgba(255,100,0,0.12);
+  --accent:       #ff6020;
+  --accent-glow:  #ff602088;
+  --text-primary: #fff0e8;
+  --text-muted:   #a05030;
+}
+body.theme-fire .title-ludo { color: #ff6020; text-shadow: 0 0 20px #ff602099, 0 0 40px #ff602044; }
+body.theme-fire .menu-btn.primary { border-color: rgba(255,100,0,0.6); background: linear-gradient(135deg, rgba(255,100,0,0.15),rgba(255,100,0,0.04)); }
+body.theme-fire .start-game-btn { border-color: rgba(255,100,0,0.6); color: #ff6020; }
+body.theme-fire .orb-red    { background: #ff4000; }
+body.theme-fire .orb-blue   { background: #ff8000; }
+body.theme-fire .orb-green  { background: #ffaa00; }
+body.theme-fire .orb-yellow { background: #ff2000; }
