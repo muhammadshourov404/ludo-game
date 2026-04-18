@@ -1,180 +1,322 @@
-:root {
-    --bg-color: #0f172a;
-    --board-bg: #1e293b;
-    --red: #ef4444;
-    --green: #22c55e;
-    --yellow: #eab308;
-    --blue: #3b82f6;
-    --white: #ffffff;
-    --border-color: #334155;
-    --neon-glow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none; /* Prevents accidental text selection while playing */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--white);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-#game-container {
-    width: 100%;
-    max-width: 500px;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
+#app {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Header */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.screen.active {
+  display: flex;
+}
+
+/* Menu Screen */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  gap: 20px;
+}
+
+.game-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--accent);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.btn {
+  padding: 14px 24px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  box-shadow: var(--shadow);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn.small {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.8rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+}
+
+.footer-credit {
+  margin-top: 30px;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Setup Screen */
+.setup-container {
+  max-width: 500px;
+  margin: 0 auto;
+  width: 100%;
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.player-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.player-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: 16px;
+}
+
+.player-setup i {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+}
+
+.player-setup select {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.mode-options {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.room-options {
+  margin: 15px 0;
+  display: flex;
+  gap: 10px;
+}
+
+#room-id-input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 30px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Game Screen */
 .game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: var(--board-bg);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    box-shadow: var(--neon-glow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 5px;
 }
 
-.mode-indicator {
-    font-weight: bold;
-    color: var(--yellow);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.game-info {
+  display: flex;
+  gap: 20px;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
-/* Dynamic Ludo Board Grid */
 .board-wrapper {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
 }
 
-#ludo-board {
-    width: 95vw;
-    max-width: 400px;
-    height: 95vw;
-    max-height: 400px;
-    background: var(--board-bg);
-    display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    grid-template-rows: repeat(15, 1fr);
-    gap: 2px;
-    padding: 5px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    border: 2px solid var(--border-color);
+#board-canvas {
+  width: 100%;
+  height: auto;
+  max-width: 600px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  background: var(--board-bg);
 }
 
-.cell {
-    background: var(--white);
-    border-radius: 3px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-/* Colors applied via JS */
-.bg-red { background: var(--red); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
-.bg-green { background: var(--green); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
-.bg-yellow { background: var(--yellow); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
-.bg-blue { background: var(--blue); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
-.bg-center { background: #334155; }
-
-/* Controls */
-.controls-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 20px;
+.dice-container {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
 }
 
 .dice {
-    font-size: 3rem;
-    margin-bottom: 15px;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+  font-size: 4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.1s;
 }
 
-.premium-btn {
-    padding: 12px 30px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--white);
-    background: linear-gradient(135deg, var(--blue), var(--red));
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    transition: 0.2s;
+.dice:active {
+  transform: scale(0.95);
 }
 
-.premium-btn:active {
-    transform: scale(0.95);
+.game-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 15px;
 }
 
-/* Footer */
-.game-footer {
-    text-align: center;
-    margin-top: auto;
-    padding-bottom: 10px;
-    font-size: 0.8rem;
-    color: #94a3b8;
+.move-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
 }
 
-.github-link {
-    color: var(--blue);
-    text-decoration: none;
-    font-weight: bold;
+.move-btn {
+  padding: 12px 20px;
+  border-radius: 40px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
 }
-:root {
-    --bg-color: #0f172a; --board-bg: #1e293b; --red: #ef4444; --green: #22c55e;
-    --yellow: #eab308; --blue: #3b82f6; --white: #ffffff; --border-color: #334155;
-    --neon-glow: 0 0 10px rgba(255, 255, 255, 0.2);
+
+/* Magic Card Slot */
+.card-deck {
+  background: var(--bg-secondary);
+  border-radius: 20px;
+  padding: 15px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; user-select: none; }
-body { background-color: var(--bg-color); color: var(--white); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
-#game-container { width: 100%; max-width: 500px; height: 100vh; display: flex; flex-direction: column; padding: 10px; }
 
-/* Network UI */
-.network-panel { background: var(--board-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; border: 1px solid var(--border-color); }
-.network-buttons { display: flex; flex-direction: column; gap: 10px; }
-.join-section { display: flex; gap: 5px; }
-#room-input { flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--white); text-align: center; outline: none; }
-.network-btn { padding: 10px; font-size: 1rem; width: 100%; }
-.room-info { margin-top: 10px; font-weight: bold; color: var(--yellow); }
-.hidden { display: none !important; }
+.card {
+  font-size: 2.5rem;
+  background: var(--bg-primary);
+  width: 70px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
 
-/* Header & Board */
-.game-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--board-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: var(--neon-glow); }
-.mode-indicator { font-weight: bold; color: var(--yellow); }
-.board-wrapper { flex-grow: 1; display: flex; justify-content: center; align-items: center; }
-#ludo-board { width: 95vw; max-width: 380px; height: 95vw; max-height: 380px; background: var(--board-bg); display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); gap: 2px; padding: 5px; border-radius: 10px; border: 2px solid var(--border-color); }
-.cell { background: var(--white); border-radius: 3px; display: flex; justify-content: center; align-items: center; position: relative; }
-.bg-red { background: var(--red); } .bg-green { background: var(--green); } .bg-yellow { background: var(--yellow); } .bg-blue { background: var(--blue); } .bg-center { background: #334155; }
+/* Settings Screen */
+.settings-container, .rules-container {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 24px;
+  max-width: 450px;
+  margin: 20px auto;
+  width: 100%;
+  box-shadow: var(--shadow);
+}
 
-/* Controls & Modal */
-.controls-section { display: flex; flex-direction: column; align-items: center; margin-top: 15px; }
-.dice { font-size: 3rem; margin-bottom: 10px; cursor: pointer; }
-.premium-btn { padding: 10px 25px; font-size: 1rem; font-weight: bold; color: var(--white); background: linear-gradient(135deg, var(--blue), var(--red)); border: none; border-radius: 20px; cursor: pointer; transition: 0.2s; }
-.premium-btn:active { transform: scale(0.95); }
-.game-footer { text-align: center; margin-top: auto; padding-bottom: 5px; font-size: 0.8rem; color: #94a3b8; }
-.github-link { color: var(--blue); text-decoration: none; font-weight: bold; }
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { background: var(--board-bg); padding: 30px; border-radius: 20px; text-align: center; border: 2px solid var(--yellow); box-shadow: 0 0 30px var(--yellow); }
-#winner-text { font-size: 2rem; color: var(--yellow); margin-bottom: 20px; }
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.toast.show {
+  opacity: 1;
+}
