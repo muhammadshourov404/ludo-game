@@ -1,1 +1,144 @@
+:root {
+    --bg-color: #0f172a;
+    --board-bg: #1e293b;
+    --red: #ef4444;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+    --white: #ffffff;
+    --border-color: #334155;
+    --neon-glow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    user-select: none; /* Prevents accidental text selection while playing */
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--white);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 100%;
+    max-width: 500px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+/* Header */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: var(--board-bg);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: var(--neon-glow);
+}
+
+.mode-indicator {
+    font-weight: bold;
+    color: var(--yellow);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Dynamic Ludo Board Grid */
+.board-wrapper {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#ludo-board {
+    width: 95vw;
+    max-width: 400px;
+    height: 95vw;
+    max-height: 400px;
+    background: var(--board-bg);
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    grid-template-rows: repeat(15, 1fr);
+    gap: 2px;
+    padding: 5px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--border-color);
+}
+
+.cell {
+    background: var(--white);
+    border-radius: 3px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Colors applied via JS */
+.bg-red { background: var(--red); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+.bg-green { background: var(--green); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+.bg-yellow { background: var(--yellow); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+.bg-blue { background: var(--blue); box-shadow: inset 0 0 10px rgba(0,0,0,0.3); }
+.bg-center { background: #334155; }
+
+/* Controls */
+.controls-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.dice {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.premium-btn {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--blue), var(--red));
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: 0.2s;
+}
+
+.premium-btn:active {
+    transform: scale(0.95);
+}
+
+/* Footer */
+.game-footer {
+    text-align: center;
+    margin-top: auto;
+    padding-bottom: 10px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.github-link {
+    color: var(--blue);
+    text-decoration: none;
+    font-weight: bold;
+}
