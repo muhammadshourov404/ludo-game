@@ -142,3 +142,39 @@ body {
     text-decoration: none;
     font-weight: bold;
 }
+:root {
+    --bg-color: #0f172a; --board-bg: #1e293b; --red: #ef4444; --green: #22c55e;
+    --yellow: #eab308; --blue: #3b82f6; --white: #ffffff; --border-color: #334155;
+    --neon-glow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; user-select: none; }
+body { background-color: var(--bg-color); color: var(--white); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+#game-container { width: 100%; max-width: 500px; height: 100vh; display: flex; flex-direction: column; padding: 10px; }
+
+/* Network UI */
+.network-panel { background: var(--board-bg); padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: center; border: 1px solid var(--border-color); }
+.network-buttons { display: flex; flex-direction: column; gap: 10px; }
+.join-section { display: flex; gap: 5px; }
+#room-input { flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--white); text-align: center; outline: none; }
+.network-btn { padding: 10px; font-size: 1rem; width: 100%; }
+.room-info { margin-top: 10px; font-weight: bold; color: var(--yellow); }
+.hidden { display: none !important; }
+
+/* Header & Board */
+.game-header { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--board-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: var(--neon-glow); }
+.mode-indicator { font-weight: bold; color: var(--yellow); }
+.board-wrapper { flex-grow: 1; display: flex; justify-content: center; align-items: center; }
+#ludo-board { width: 95vw; max-width: 380px; height: 95vw; max-height: 380px; background: var(--board-bg); display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); gap: 2px; padding: 5px; border-radius: 10px; border: 2px solid var(--border-color); }
+.cell { background: var(--white); border-radius: 3px; display: flex; justify-content: center; align-items: center; position: relative; }
+.bg-red { background: var(--red); } .bg-green { background: var(--green); } .bg-yellow { background: var(--yellow); } .bg-blue { background: var(--blue); } .bg-center { background: #334155; }
+
+/* Controls & Modal */
+.controls-section { display: flex; flex-direction: column; align-items: center; margin-top: 15px; }
+.dice { font-size: 3rem; margin-bottom: 10px; cursor: pointer; }
+.premium-btn { padding: 10px 25px; font-size: 1rem; font-weight: bold; color: var(--white); background: linear-gradient(135deg, var(--blue), var(--red)); border: none; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+.premium-btn:active { transform: scale(0.95); }
+.game-footer { text-align: center; margin-top: auto; padding-bottom: 5px; font-size: 0.8rem; color: #94a3b8; }
+.github-link { color: var(--blue); text-decoration: none; font-weight: bold; }
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content { background: var(--board-bg); padding: 30px; border-radius: 20px; text-align: center; border: 2px solid var(--yellow); box-shadow: 0 0 30px var(--yellow); }
+#winner-text { font-size: 2rem; color: var(--yellow); margin-bottom: 20px; }
