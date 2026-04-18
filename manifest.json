@@ -1,17 +1,22 @@
 {
-  "name": "Premium Ludo V4MPIR3",
-  "short_name": "Ludo Pro",
-  "description": "Premium Offline/Online Ludo Game by Muhammad Shourov",
-  "start_url": "index.html",
+  "name": "Ludo Royale - V4MPIR3",
+  "short_name": "Ludo",
+  "description": "প্রিমিয়াম লুডো গেম অফলাইন ও অনলাইন মাল্টিপ্লেয়ার",
+  "start_url": "/ludo-game/index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "background_color": "#1e1e2f",
+  "theme_color": "#1e1e2f",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3504/3504100.png",
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
