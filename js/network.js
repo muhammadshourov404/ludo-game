@@ -1,51 +1,135 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDhAhSJhg9cAefOC1qg0VNfaLxqBX0-Itk", authDomain: "ludo-game-fd743.firebaseapp.com",
-    databaseURL: "https://ludo-game-fd743-default-rtdb.firebaseio.com", projectId: "ludo-game-fd743",
-    storageBucket: "ludo-game-fd743.firebasestorage.app", messagingSenderId: "730048485099", appId: "1:730048485099:web:e897a332370427f6de50ae"
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+import { firebaseConfig } from './firebase-config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set, onValue, push, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
 export class NetworkManager {
-    constructor(gameInstance) {
-        this.game = gameInstance; this.roomId = null; this.isHost = false; this.playerId = null;
-        this.setupUI();
+  constructor(mode) {
+    this.mode = mode; // 'local' (LAN) or 'online'
+    this.roomId = null;
+    this.playerId = null;
+    this.db = null;
+    this.peerConnection = null;
+    this.dataChannel = null;
+    this.onMessage = null;
+    
+    if (mode === 'online') {
+      const app = initializeApp(firebaseConfig);
+      this.db = getDatabase(app);
     }
-    setupUI() {
-        document.getElementById('host-btn').addEventListener('click', () => this.hostRoom());
-        document.getElementById('join-btn').addEventListener('click', () => this.joinRoom());
+  }
+  
+  // Online using Firebase
+  async createRoom() {
+    if (!this.db) throw new Error('Firebase not initialized');
+    const roomRef = push(ref(this.db, 'rooms'));
+    this.roomId = roomRef.key;
+    this.playerId = 0; // host is player 0
+    await set(roomRef, {
+      host: this.playerId,
+      players: { 0: { ready: true } },
+      gameState: null,
+      currentTurn: 0
+    });
+    this.listenToRoom();
+    return this.roomId;
+  }
+  
+  async joinRoom(roomId) {
+    this.roomId = roomId;
+    const roomRef = ref(this.db, `rooms/${roomId}`);
+    // Check room exists and assign player id
+    const snapshot = await new Promise(resolve => onValue(roomRef, resolve, { onlyOnce: true }));
+    if (!snapshot.exists()) throw new Error('Room not found');
+    const data = snapshot.val();
+    const players = data.players || {};
+    let assignedId = null;
+    for (let i = 1; i < 4; i++) {
+      if (!players[i]) {
+        assignedId = i;
+        break;
+      }
     }
-    generateRoomCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
-    hostRoom() {
-        this.roomId = this.generateRoomCode(); this.isHost = true; this.playerId = 'red';
-        const roomRef = ref(db, 'rooms/' + this.roomId);
-        set(roomRef, { host: 'connected', joiner: 'waiting', gameState: { currentPlayer: 'red', diceValue: 6, tokens: this.game.tokens } });
-        onDisconnect(roomRef).remove();
-        document.getElementById('room-display').innerText = `Room Code: ${this.roomId} (Waiting...)`;
-        document.querySelector('.network-buttons').classList.add('hidden');
-        this.listenForUpdates();
+    if (assignedId === null) throw new Error('Room full');
+    this.playerId = assignedId;
+    await update(roomRef, { [`players/${assignedId}`]: { ready: true } });
+    this.listenToRoom();
+    return assignedId;
+  }
+  
+  listenToRoom() {
+    const roomRef = ref(this.db, `rooms/${this.roomId}`);
+    onValue(roomRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.gameState && this.onMessage) {
+        this.onMessage({ type: 'state-update', state: data.gameState });
+      }
+      if (data && data.currentTurn !== undefined) {
+        // Notify turn
+      }
+    });
+  }
+  
+  sendGameState(state) {
+    if (!this.roomId || !this.db) return;
+    const roomRef = ref(this.db, `rooms/${this.roomId}`);
+    update(roomRef, { gameState: state, currentTurn: state.currentPlayer });
+  }
+  
+  // LAN using WebRTC (simplified with manual signaling via prompt)
+  // We'll implement a simple copy-paste signaling for LAN.
+  async setupLAN(host = true) {
+    // Create RTCPeerConnection
+    const configuration = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+    this.peerConnection = new RTCPeerConnection(configuration);
+    
+    if (host) {
+      this.dataChannel = this.peerConnection.createDataChannel('game');
+      this.setupDataChannel();
+      const offer = await this.peerConnection.createOffer();
+      await this.peerConnection.setLocalDescription(offer);
+      // Wait for ICE gathering
+      await new Promise(resolve => {
+        if (this.peerConnection.iceGatheringState === 'complete') resolve();
+        else this.peerConnection.addEventListener('icegatheringstatechange', resolve, { once: true });
+      });
+      return JSON.stringify(this.peerConnection.localDescription);
+    } else {
+      this.peerConnection.ondatachannel = (event) => {
+        this.dataChannel = event.channel;
+        this.setupDataChannel();
+      };
     }
-    joinRoom() {
-        const inputCode = document.getElementById('room-input').value.trim();
-        if (inputCode.length !== 6) return alert("Invalid Room Code!");
-        this.roomId = inputCode; this.isHost = false; this.playerId = 'green';
-        const roomRef = ref(db, 'rooms/' + this.roomId);
-        update(roomRef, { joiner: 'connected' });
-        document.getElementById('room-display').innerText = `Connected to: ${this.roomId}`;
-        document.querySelector('.network-buttons').classList.add('hidden');
-        this.listenForUpdates();
+    
+    this.peerConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        console.log('ICE candidate:', JSON.stringify(event.candidate));
+      }
+    };
+  }
+  
+  async connectLAN(remoteDesc) {
+    await this.peerConnection.setRemoteDescription(JSON.parse(remoteDesc));
+    const answer = await this.peerConnection.createAnswer();
+    await this.peerConnection.setLocalDescription(answer);
+    await new Promise(resolve => {
+      if (this.peerConnection.iceGatheringState === 'complete') resolve();
+      else this.peerConnection.addEventListener('icegatheringstatechange', resolve, { once: true });
+    });
+    return JSON.stringify(this.peerConnection.localDescription);
+  }
+  
+  setupDataChannel() {
+    this.dataChannel.onopen = () => console.log('Data channel open');
+    this.dataChannel.onmessage = (event) => {
+      if (this.onMessage) {
+        this.onMessage(JSON.parse(event.data));
+      }
+    };
+  }
+  
+  sendLAN(message) {
+    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+      this.dataChannel.send(JSON.stringify(message));
     }
-    listenForUpdates() {
-        onValue(ref(db, `rooms/${this.roomId}/gameState`), (snapshot) => {
-            const data = snapshot.val();
-            if (data && data.lastActionBy !== this.playerId) this.game.syncFromNetwork(data);
-        });
-    }
-    sendUpdate() {
-        if (!this.roomId) return;
-        update(ref(db, `rooms/${this.roomId}/gameState`), { currentPlayer: this.game.currentPlayer, diceValue: this.game.diceValue, tokens: this.game.tokens, lastActionBy: this.playerId });
-    }
+  }
 }
