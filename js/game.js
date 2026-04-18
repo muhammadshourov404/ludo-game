@@ -1,5 +1,7 @@
 // js/game.js
 // V4MPIR3 Ludo - Core Game Logic with Home Path & Win Logic
+import { sounds } from './sound.js';
+import { CardSystem, MagicEffects } from './cards.js';
 
 class LudoGame {
     constructor() {
@@ -66,6 +68,8 @@ class LudoGame {
     rollDice() {
         if (this.isRolling || this.diceRolled) return; 
         this.isRolling = true;
+        sounds.play('dice');
+
         this.diceContainer.classList.add('rolling');
         if (navigator.vibrate) navigator.vibrate(50);
 
@@ -135,6 +139,14 @@ class LudoGame {
                 console.log(`🎉 ${color} token ${id} REACHED THE GOAL!`);
                 this.checkWinCondition(color);
             }
+sounds.play('move');
+
+// Check for Magic Effect
+const effect = this.magicSystem.getEffectAt(token.position);
+if(effect) {
+    this.magicSystem.applyEffect(token, effect);
+    alert(`✨ Magic: ${effect.toUpperCase()}`); // পরে এটি সুন্দর ইমোজি দিয়ে রিপ্লেস করব
+}
 
             this.moveTokenDOM(color, id);
             
