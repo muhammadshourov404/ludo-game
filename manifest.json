@@ -1,22 +1,36 @@
 {
-  "name": "Ludo Royale - V4MPIR3",
-  "short_name": "Ludo",
-  "description": "প্রিমিয়াম লুডো গেম অফলাইন ও অনলাইন মাল্টিপ্লেয়ার",
-  "start_url": "/ludo-game/index.html",
+  "name": "LUDO NEXUS — Ultimate Edition",
+  "short_name": "Ludo Nexus",
+  "description": "Premium Ludo game with Classic, Rush & Magical modes. Online multiplayer, LAN/WiFi, and AI bots. by Muhammad Shourov (V4MPIR3)",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1e1e2f",
-  "theme_color": "#1e1e2f",
+  "background_color": "#0d0a1a",
+  "theme_color": "#1a0a2e",
+  "categories": ["games", "entertainment"],
+  "lang": "en",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Quick Play",
+      "short_name": "Play",
+      "description": "Start a quick Classic game",
+      "url": "/?mode=classic",
+      "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
