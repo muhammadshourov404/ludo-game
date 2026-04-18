@@ -7,15 +7,25 @@
     
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/themes.css">
     <link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
     <div id="game-container">
+        <div id="network-ui" class="network-panel">
+            <div class="network-buttons">
+                <button id="host-btn" class="premium-btn network-btn">Host Online Game</button>
+                <div class="join-section">
+                    <input type="text" id="room-input" placeholder="Enter Room Code" maxlength="6">
+                    <button id="join-btn" class="premium-btn network-btn">Join</button>
+                </div>
+            </div>
+            <p id="room-display" class="room-info"></p>
+        </div>
+
         <header class="game-header">
-            <div class="player-info" id="player-1-info">Player 1 (Red)</div>
-            <div class="mode-indicator" id="current-mode">Classic Mode</div>
-            <div class="player-info" id="player-2-info">Player 2 (Green)</div>
+            <div class="player-info" id="player-1-info">P1 (Red)</div>
+            <div class="mode-indicator" id="current-mode">Classic Ludo</div>
+            <div class="player-info" id="player-2-info">AI / P2 (Green)</div>
         </header>
 
         <main class="board-wrapper">
@@ -23,9 +33,7 @@
         </main>
 
         <div class="controls-section">
-            <div id="dice-container" class="dice">
-                <div id="dice-value">🎲</div>
-            </div>
+            <div id="dice-container" class="dice"></div>
             <button id="roll-btn" class="premium-btn">Roll Dice</button>
         </div>
 
@@ -33,30 +41,23 @@
             <p>&copy; 2026 Muhammad Shourov (V4MPIR3). All Rights Reserved.</p>
             <a href="https://github.com/muhammadshourov404/ludo-game" target="_blank" class="github-link">GitHub Repo</a>
         </footer>
+
+        <div id="win-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="winner-text">Congratulations!</h2>
+                <p>You played like a pro!</p>
+                <button onclick="location.reload()" class="premium-btn">Play Again</button>
+            </div>
+        </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-analytics.js";
-        import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDhAhSJhg9cAefOC1qg0VNfaLxqBX0-Itk",
-            authDomain: "ludo-game-fd743.firebaseapp.com",
-            databaseURL: "https://ludo-game-fd743-default-rtdb.firebaseio.com",
-            projectId: "ludo-game-fd743",
-            storageBucket: "ludo-game-fd743.firebasestorage.app",
-            messagingSenderId: "730048485099",
-            appId: "1:730048485099:web:e897a332370427f6de50ae",
-            measurementId: "G-GEG3CKBYWP"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app);
-        export const db = getDatabase(app);
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log("Ludo PWA Registered!"))
+                .catch(err => console.log("PWA Error:", err));
+        }
     </script>
-
-    <script type="module" src="js/sound.js"></script>
     <script type="module" src="js/board.js"></script>
     <script type="module" src="js/game.js"></script>
 </body>
