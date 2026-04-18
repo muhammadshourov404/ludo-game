@@ -38,6 +38,18 @@ class LudoGame {
         document.getElementById('roll-btn').addEventListener('click', () => this.rollDice());
         this.diceContainer.addEventListener('click', () => this.rollDice());
         setTimeout(() => this.renderAllTokens(), 100);
+                setTimeout(() => {
+            this.renderAllTokens();
+            // ম্যাজিক ঘরগুলোতে ভিজ্যুয়াল গ্লো যুক্ত করা
+            this.magicSystem.magicPositions.forEach(pos => {
+                let [r, c] = this.masterPath[pos];
+                const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                if (cell) {
+                    cell.style.boxShadow = "inset 0 0 15px var(--blue)";
+                    cell.style.border = "2px solid var(--blue)";
+                }
+            });
+        }, 100);
     }
 
     updateActiveUI() {
